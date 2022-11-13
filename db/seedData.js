@@ -1,5 +1,6 @@
 // require in the database adapter functions as you write them (createUser, createActivity...)
-const { createUser, createActivity } = require('./');
+const { createUser } = require('./users.js');
+const { createActivity } = require('./activities.js');
 const client = require("./client")
 
 async function dropTables() {
@@ -79,6 +80,7 @@ async function createInitialUsers() {
       { username: "sandra", password: "sandra123" },
       { username: "glamgal", password: "glamgal123" },
     ]
+    console.log(createUser);
     const users = await Promise.all(usersToCreate.map(createUser))
 
     console.log("Users created:")
