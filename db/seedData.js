@@ -37,7 +37,6 @@ async function dropTables() {
     }
   }
 
-
 /* 
 
 DO NOT CHANGE ANYTHING BELOW. This is default seed data, and will help you start testing, before getting to the tests. 
