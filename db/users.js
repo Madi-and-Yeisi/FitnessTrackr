@@ -6,15 +6,14 @@ const client = require("./client");
 async function createUser({ username, password }) {
   try {
     const {rows:[user]}= await client.query(`
-    INSERT INTO users (username,password)
+    INSERT INTO users(username,password)
     VALUES ($1,$2)
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR (255)
-    RETURNING*;
+    ON CONFLICT (username) DO NOTHING
+    RETURNING *;
     `,[username,password]);
     return user;
   }catch (error){
+    console.log(error)
     throw error;
   }
 }
