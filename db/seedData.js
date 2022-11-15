@@ -2,7 +2,7 @@
 const { createUser } = require('./users.js');
 const { createActivity } = require('./activities.js');
 const client = require("./client")
-
+const {createRoutine,getRoutinesWithoutActivities}=require ("./routines.js")
 async function dropTables() {
   try{
     console.log('Dropping tables');
