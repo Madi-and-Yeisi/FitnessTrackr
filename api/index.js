@@ -11,8 +11,6 @@ const { JWT_SECRET } = process.env;
 router.use(async (req, res, next) => {
     const prefix = 'Bearer ';
     const auth = req.header('Authorization');
-    console.log("trying to set req.user...")
-    console.log("auth?", auth);
     
     if (!auth) { // nothing to see here
       next();
@@ -39,9 +37,10 @@ router.use(async (req, res, next) => {
     }
   });
 
-  
+
 // GET /api/health
 router.get('/health', async (req, res, next) => {
+  res.send({ message: "The server is up, all is well." })
 });
 
 // ROUTER: /api/users

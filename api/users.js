@@ -1,18 +1,26 @@
-/* eslint-disable no-useless-catch */
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const express = require("express");
 const usersRouter = express.Router();
 
 const { createUser, getUserByUsername, getUser } = require('../db/users');
-const { getAllRoutinesByUser } = require("../db/routines");
+const { getAllRoutinesByUser, getPublicRoutinesByUser } = require("../db/routines");
 
 
 // POST /api/users/register
+// Create a new user. Require username and password, and hash password before saving user to DB. Require all passwords to be at least 8 characters long.
+// Throw errors for duplicate username, or password-too-short.
 usersRouter.post('/register', async (req, res, next) => {
     const { username, password } = req.body;
 
     try {
+        if (password.length < 8) { // TODO: stop from creating user anyways...
+            next({
+                name: 'PasswordTooShortError',
+                message: 'Password must be at least 8 characters long'
+            });
+        }
+
         const _user = await getUserByUsername(username);
 
         if (_user) {
@@ -41,6 +49,8 @@ usersRouter.post('/register', async (req, res, next) => {
 
 
 // POST /api/users/login
+// Log in the user. Require username and password, and verify that plaintext login password matches the saved hashed password before returning a JSON Web Token.
+// Keep the id and username in the token
 usersRouter.post('/login', async (req, res, next) => {
     const { username, password } = req.body;
 
@@ -74,12 +84,13 @@ usersRouter.post('/login', async (req, res, next) => {
 
 
 // GET /api/users/me
+// Send back the logged-in user's data if a valid token is supplied in the header.
 usersRouter.get('/me', async (req, res, next) => {
     try {
         if (!req.user){
             next({
-                name: "InvalidUsername",
-                message:"Invalid Username"
+                name: "InvalidCredentialsError",
+                message:"Not logged in"
             })
         } else {
             const user = await getUserByUsername(req.user.username);
@@ -92,18 +103,14 @@ usersRouter.get('/me', async (req, res, next) => {
 
 
 // GET /api/users/:username/routines
+// TODO: Get a list of public routines for a particular user.
 usersRouter.get('/:username/routines', async (req, res, next) => {
+    const { username } = req.params;
+    console.log("getting routines from ", username);
+
     try {
-        if (!req.user) {
-            next({
-                name:"InvalidUsernameRoutines",
-                message:"Invalid Username and Routines"
-            });
-        } else {
-            const routines = await getAllRoutinesByUser(req.user.username);
-            console.log("routines", routines);
-            res.send({ routines });
-        }
+        const routines = await getPublicRoutinesByUser(username);
+        res.send(routines);
     } catch ({name,message}){
         next({name,message})
     }

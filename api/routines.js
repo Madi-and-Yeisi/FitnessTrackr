@@ -5,6 +5,7 @@ const { createRoutine, getAllRoutines, updateRoutine, getRoutineById } = require
 const { requireUser } = require('./utils');
 
 // GET /api/routines
+// Return a list of public routines, include the activities with them
 routinesRouter.get('/', async (req, res, next) => {
     try{
         const routines = await getAllRoutines();
@@ -17,6 +18,7 @@ routinesRouter.get('/', async (req, res, next) => {
 
 
 // POST /api/routines
+// Create a new routine
 routinesRouter.post('/', requireUser, async (req, res, next) => {
     const { name, goal, isPublic } = req.body;
 
@@ -45,6 +47,7 @@ routinesRouter.post('/', requireUser, async (req, res, next) => {
 
 
 // PATCH /api/routines/:routineId
+// Update a routine, notably change public/private, the name, or the goal
 routinesRouter.patch('/:routineId', requireUser, async (req, res, next) => {
     const { routineId } = req.params;
     const { name, goal, isPublic } = req.body;
@@ -74,6 +77,7 @@ routinesRouter.patch('/:routineId', requireUser, async (req, res, next) => {
 });
 
 // DELETE /api/routines/:routineId
+// TODO: Hard delete a routine. Make sure to delete all the routineActivities whose routine is the one being deleted.
 routinesRouter.delete('/:routineId', requireUser, async (req, res, next) => {
     try {
         const routine = await getRoutineById(req.params.routineId);
@@ -84,7 +88,7 @@ routinesRouter.delete('/:routineId', requireUser, async (req, res, next) => {
             res.send({ routine: updatedRoutine })
         } else {
             // if there was a routine, throw UnauthorizedUserError, otherwise throw RoutineNotFoundError
-            next(post ? {
+            next(routine ? {
                 name: "UnauthorizedUserError",
                 message: "You cannot delete a routine which is not yours"
             } : {
@@ -99,6 +103,7 @@ routinesRouter.delete('/:routineId', requireUser, async (req, res, next) => {
 
 
 // POST /api/routines/:routineId/activities
+// TODO: Attach a single activity to a routine. Prevent duplication on (routineId, activityId) pair.
 routinesRouter.post('/:routineId/activities', requireUser, async (req, res, next) => {
     // const { activityId, count, duration } = req.body;
 

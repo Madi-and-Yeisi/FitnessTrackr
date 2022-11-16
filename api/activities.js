@@ -7,6 +7,7 @@ const { requireUser } = require('./utils');
 
 
 // GET /api/activities
+// Just return a list of all activities in the database
 activitiesRouter.get('/', async (req, res, next) => {
     try {
         const activities = await getAllActivities();
@@ -19,6 +20,7 @@ activitiesRouter.get('/', async (req, res, next) => {
 
 
 // POST /api/activities
+// Create a new activity
 activitiesRouter.post('/', requireUser, async (req, res, next) => {
     const { name, description } = req.body;
 
@@ -45,6 +47,7 @@ activitiesRouter.post('/', requireUser, async (req, res, next) => {
 
 
 // PATCH /api/activities/:activityId
+// Anyone can update an activity (yes, this could lead to long term problems a la wikipedia)
 activitiesRouter.patch('/:activityId', requireUser, async (req, res, next) => {
     const { activityId } = req.params;
     const { name, description } = req.body;
@@ -65,6 +68,7 @@ activitiesRouter.patch('/:activityId', requireUser, async (req, res, next) => {
 
 
 // GET /api/activities/:activityId/routines
+// TODO: Get a list of all public routines which feature that activity
 activitiesRouter.get('/:activityId/routines', async (req, res, next) => {
     const activityId = req.params.activityId;
 
