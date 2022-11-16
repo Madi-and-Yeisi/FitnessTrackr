@@ -31,6 +31,7 @@ async function getUser({ username, password }) {
   // this should be able to verify the password against the hashed password
   try {
     const user = await getUserByUsername(username);
+    console.log("user", user);
 
     const passwordsMatch = await bcrypt.compare(password, user.password);
     if (passwordsMatch) {
@@ -44,6 +45,7 @@ async function getUser({ username, password }) {
 }
 
 async function getUserById(userId) {
+  console.log("getting user by id.... Id:", userId);
   try {
     const { rows: [ user ] } = await client.query(`
       SELECT id, username 
@@ -60,12 +62,14 @@ async function getUserById(userId) {
 }
 
 async function getUserByUsername(userName) {
+  console.log("finding user by username...")
   try {
     const { rows: [ user ] } = await client.query(`
       SELECT id, username, password 
       FROM users 
       WHERE username=$1;
     `, [userName]);
+    console.log("found user by username:", user)
 
     return user;
   } catch (error) {

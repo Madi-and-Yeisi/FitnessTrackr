@@ -1,35 +1,29 @@
 const client = require("./client");
 
-async function createRoutine({ creatorId,isPublic, name, goal }) {
+async function createRoutine({ creatorId, isPublic, name, goal }) {
   try{ 
     const {rows: [routine]}= await client.query (`
-    INSERT INTO routines ("creatorId", "isPublic",name,goal)
-    VALUES ($1,$2,$3,$4)
-    RETURNING *;
-    `,[creatorId,isPublic,name,goal]);
+      INSERT INTO routines ("creatorId", "isPublic", name, goal)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *;
+    `, [creatorId, isPublic, name, goal]);
 
-
-return routine;
-  }catch (error){
+    return routine;
+  } catch (error) {
     throw error;
   }
 }
 
 
 async function getRoutineById(id) {
-  try{
-    const {rows:[routine]}=await client.query(`
-    SELECT * 
-    FROM routines
-    WHERE id=$1;
-    ,`[id]);
+  try {
+    const { rows: [ routine ] }=await client.query(`
+      SELECT * 
+      FROM routines
+      WHERE id=$1;
+    `, [id]);
 
-    const {rows:id }=await client.query(`
-    SELECT id *
-    FROM id
-    WHERE id=$1;
-    `,[id])
-  return id;
+    return routine;
   }catch(error){
     throw error;
   }
@@ -50,11 +44,12 @@ async function getRoutinesWithoutActivities() {
 
 async function getAllRoutines() {
   try{
-    const {routine}=await client.query(`
-    SELECT * FROM routines;`);
+    const { rows } = await client.query(`
+      SELECT * FROM routines;
+      `);
 
-    return routine;
-  }catch(Error){
+    return rows;
+  } catch (error) {
     throw error;
   }
 }
@@ -103,14 +98,14 @@ async function getPublicRoutinesByUser({ username }) {
   }
 }
 
-async function getPublicRoutinesByActivity({ id }) {
+async function getPublicRoutinesByActivity(activityId) {
   try{
-    const {rows:id}=await client.query (`
-    SELECT activity FROM routines
-    WHERE activity=${id};
+    const { rows: routines } = await client.query (`
+      SELECT * FROM routines
+      WHERE activity=${activityId};
     `)
 
-    const activity =await Promise.all (id.map(
+    const activity = await Promise.all (id.map(
       activity=> getPublicRoutinesByActivity(activity.id)
     ));
 return activity;
@@ -119,24 +114,23 @@ return activity;
   }
 }
 
-async function updateRoutine({ id,...fields }) {
-  const setString=Object.keys(fields).map(
-    (key,index)=> `"${key}"=$${index+1}`
+async function updateRoutine( routineId, fields ) {
+  const setString = Object.keys(fields).map(
+    (key, index) => `"${ key }"=$${ index + 1 }`
   ).join(',');
 
-  if (setString.length===0) {
-    return;
+  if (setString.length === 0) return;
 
-  }
-  try{
-    const {rows:[routine]} =await client.query(`
-     UPDATE routine
-     SET ${setString}
-     WHERE id=${id}
-     RETURNING *; 
-     `, Object.values(fields));
-     return user;
-  }catch (Error){
+  try {
+    const { rows: [routine] } =await client.query(`
+      UPDATE routines
+      SET ${setString}
+      WHERE id=${routineId}
+      RETURNING *; 
+    `, Object.values(fields));
+
+    return routine;
+  } catch (error){
     throw error;
   }
 }
