@@ -1,3 +1,5 @@
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const client = require('./client');
 const bcrypt = require('bcrypt');
 const SALT_COUNT = 10;
@@ -10,9 +12,9 @@ async function createUser({ username, password }) {
   const hashedPassword = await bcrypt.hash(password, saltValue);
 
   try {
-    const { rows: [ user ] }= await client.query(`
-      INSERT INTO users(username,password)
-      VALUES ($1,$2)
+    const { rows: [ user ] } = await client.query(`
+      INSERT INTO users(username, password)
+      VALUES ($1, $2)
       ON CONFLICT (username) DO NOTHING
       RETURNING *;
     `, [username, hashedPassword]);

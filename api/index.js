@@ -1,7 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
+// jwt middleware
 
+const jwt = require('jsonwebtoken');
+const { getUserById } = require('../db/users');
+const { JWT_SECRET } = process.env;
+
+// set 'req.user' if possible
 router.use(async (req, res, next) => {
     const prefix = 'Bearer ';
     const auth = req.header('Authorization');
@@ -43,12 +49,12 @@ router.use('/users', usersRouter);
 const activitiesRouter = require('./activities');
 router.use('/activities', activitiesRouter);
 
-// ROUTER: /api/routines
-const routinesRouter = require('./routines');
-router.use('/routines', routinesRouter);
+// // ROUTER: /api/routines
+// const routinesRouter = require('./routines');
+// router.use('/routines', routinesRouter);
 
-// ROUTER: /api/routine_activities
-const routineActivitiesRouter = require('./routineActivities');
-router.use('/routine_activities', routineActivitiesRouter);
+// // ROUTER: /api/routine_activities
+// const routineActivitiesRouter = require('./routineActivities');
+// router.use('/routine_activities', routineActivitiesRouter);
 
 module.exports = router;
