@@ -26,20 +26,21 @@ routinesRouter.get ('/', async (req,res,next)=> {
         next({routines});
     }
 });
+
 // POST /api/routines
 routinesRouter.post('/',requireRoutines,async(req,res,nex)=>{
 const {name=""}=req.body;
 
-const tagArr=tags.trim().split(/\s+/)
-const postData={};
+const routineArr=tags.trim().split(/\s+/)
+const routineData={};
 
 if(tagArr.length){
- postData.tags=tagArr;
+ routineData.tags=tagArr;
 }
 try{
-    postData.name=name;
+    routineData.name=name;
 
-    const post =await createRoutine(postData);
+    const routine =await createRoutine(postData);
 
     if (post) {
         res.send (post);
@@ -109,6 +110,8 @@ routinesRouter.delete('/:routineId',requireRoutines,async(req,res,next)=>{
     next({name})
 }
 });
+
+
 // POST /api/routines/:routineId/activities
  
 routinesRouter.post ('/', requireRoutines, async(req,res,next)=>{

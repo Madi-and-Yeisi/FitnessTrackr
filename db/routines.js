@@ -141,8 +141,16 @@ async function updateRoutine({ id,...fields }) {
   }
 }
 
-// async function destroyRoutine(id) {}
-
+async function destroyRoutine(id){
+  try{
+      console.log("destroying routine #" + id)
+      await client.query(`
+      DELETE FROM routines WHERE id =${id}`)
+      console.log(id + " routine destroyed");
+  } catch(error){
+      console.log(error);
+  }
+} 
 module.exports = {
   getRoutineById,
   getRoutinesWithoutActivities,
@@ -153,5 +161,5 @@ module.exports = {
   getPublicRoutinesByActivity,
   createRoutine,
   updateRoutine,
-  // destroyRoutine,
+  destroyRoutine,
 }
