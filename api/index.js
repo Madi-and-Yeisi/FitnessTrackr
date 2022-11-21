@@ -1,10 +1,18 @@
 const express = require('express');
 const router = express.Router();
 
+// jwt middleware
 
+const jwt = require('jsonwebtoken');
+const { getUserById } = require('../db/users');
+const { JWT_SECRET } = process.env;
+
+// set 'req.user' if possible
 router.use(async (req, res, next) => {
     const prefix = 'Bearer ';
     const auth = req.header('Authorization');
+    console.log("trying to set req.user...")
+    console.log("auth?", auth);
     
     if (!auth) { // nothing to see here
       next();
@@ -17,6 +25,7 @@ router.use(async (req, res, next) => {
         const id = parsedToken && parsedToken.id
         if (id) {
           req.user = await getUserById(id);
+          console.log("req.user set!", req.user);
           next();
         }
       } catch (error) {
@@ -43,12 +52,20 @@ router.use('/users', usersRouter);
 const activitiesRouter = require('./activities');
 router.use('/activities', activitiesRouter);
 
-// ROUTER: /api/routines
+// // ROUTER: /api/routines
 const routinesRouter = require('./routines');
 router.use('/routines', routinesRouter);
 
-// ROUTER: /api/routine_activities
-const routineActivitiesRouter = require('./routineActivities');
-router.use('/routine_activities', routineActivitiesRouter);
+// // ROUTER: /api/routine_activities
+// const routineActivitiesRouter = require('./routineActivities');
+// router.use('/routine_activities', routineActivitiesRouter);
+
+// Error handling
+router.use((error, req, res, next) => {
+  res.send({
+      name: error.name,
+      message: error.message
+  });
+});
 
 module.exports = router;

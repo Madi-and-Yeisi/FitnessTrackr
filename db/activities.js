@@ -64,20 +64,23 @@ async function getActivityByName(name) {
 }
 
 
-async function updateActivity({ id, name, description }) {
+async function updateActivity(activityId, fields) {
+  const setString = Object.keys(fields).map(
+    (key, index) => `"${ key }"=$${ index + 1 }`
+  ).join(',');
+
+  if (setString.length === 0) return;
+
   try {
-    if (setString.length > 0) {
-      const { rows: [ activity ] } = await client.query(`
-        UPDATE activities 
-        SET "name"=$1, "description"=$2  
-        WHERE id=$3  
-        RETURNING *;
-      `, [name, description, id]);
+    const { rows: [activity] } =await client.query(`
+      UPDATE activities 
+      SET ${setString}
+      WHERE id=${activityId}
+      RETURNING *; 
+    `, Object.values(fields));
 
-      return activity;
-    }
-
-  } catch (error) {
+    return activity;
+  } catch (error){
     throw error;
   }
 }
