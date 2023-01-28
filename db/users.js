@@ -1,12 +1,11 @@
-require('dotenv').config();
-const jwt = require('jsonwebtoken');
-const client = require('./client');
+const { client } = require('./index');
 const bcrypt = require('bcrypt');
 const SALT_COUNT = 10;
 
 // user database functions
 
 
+// hash password for encryption and create user
 async function createUser({ username, password }) {
   const saltValue = await bcrypt.genSalt(SALT_COUNT);
   const hashedPassword = await bcrypt.hash(password, saltValue);
@@ -20,35 +19,54 @@ async function createUser({ username, password }) {
     `, [username, hashedPassword]);
 
     return user;
-  }catch (error){
+  } catch (error) {
     console.log(error)
     throw error;
   }
 }
 
 
+// TODO: FIND USAGES AND TEST
+// check user for valid input, find username and compare input password to encrypted password
 async function getUser({ username, password }) {
-  // this should be able to verify the password against the hashed password
   try {
     const user = await getUserByUsername(username);
     console.log("user", user);
     if (user) {
       const passwordsMatch = await bcrypt.compare(password, user.password);
       if (passwordsMatch) {
-        return user;
+        return user;  // got you!
       } else {
         console.log("Passwords don't match")
       }
     } else {
       console.log("No user with that username")
     }
-
-
   } catch (error) {
     throw error;
   }
 }
 
+
+// gets user by username for getUser verification
+async function getUserByUsername(userName) {
+  console.log("getting user by username...")
+  try {
+    const { rows: [ user ] } = await client.query(`
+      SELECT id, username, password 
+      FROM users 
+      WHERE username=$1;
+    `, [userName]);
+    console.log("user:", user)
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+// TODO: FIND USAGES AND TEST
+// gets user by id for
 async function getUserById(userId) {
   console.log("getting user by id.... Id:", userId);
   try {
@@ -57,30 +75,13 @@ async function getUserById(userId) {
       FROM users 
       WHERE id=$1;
     `, [userId]);
-
-    if (!user) return null;
-
+    console.log("user by id:", user)
     return user;
   } catch (error) {
     throw error;
   }
 }
 
-async function getUserByUsername(userName) {
-  console.log("finding user by username...")
-  try {
-    const { rows: [ user ] } = await client.query(`
-      SELECT id, username, password 
-      FROM users 
-      WHERE username=$1;
-    `, [userName]);
-    console.log("found user by username:", user)
-
-    return user;
-  } catch (error) {
-    throw error;
-  }
-}
 
 module.exports = {
   createUser,

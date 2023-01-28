@@ -1,47 +1,53 @@
-require('dotenv').config();
-const jwt = require('jsonwebtoken');
 const express = require("express");
 const usersRouter = express.Router();
 
-const { createUser, getUserByUsername, getUser } = require('../db/users');
+const jwt = require('jsonwebtoken');
+const {JWT_SECRET} = process.env;
+
+const { createUser, getUserByUsername, getUser, getUserById } = require('../db/users');
 const { getAllRoutinesByUser, getPublicRoutinesByUser } = require("../db/routines");
 
 
 // POST /api/users/register
-// Create a new user. Require username and password, and hash password before saving user to DB. Require all passwords to be at least 8 characters long.
-// Throw errors for duplicate username, or password-too-short.
 usersRouter.post('/register', async (req, res, next) => {
     const { username, password } = req.body;
 
     try {
-        if (password.length < 8) { // TODO: stop from creating user anyways...
+        if(!username || !password) {    // require username and password
+            next({ 
+                name: 'MissingCredentialsError', 
+                message: 'Missing username or password'
+            });
+        }
+        else if (username.length < 3) { // require all usernames to be at least 3 characters long 
             next({
-                name: 'PasswordTooShortError',
-                message: 'Password must be at least 8 characters long'
+                name: 'ShortUsernameError',
+                message: 'Username is too short, must be at least 3 characters'
             });
         }
-
-        const _user = await getUserByUsername(username);
-
-        if (_user) {
-            next ({
-                name:'UserExistsError',
-                message:'A User by that Username already exists'
+        else if (password.length < 8) { // require all passwords to be at least 8 characters long TODO: stop from creating user anyways...
+            next({
+                name: 'ShortPasswordError',
+                message: 'Password is too short, must be at least 8 characters'
             });
+        } else {
+            const _user = await getUserByUsername(username);
+
+            if (_user) {    // require unique username
+                next ({
+                    name:'UserExistsError',
+                    message:'A user by that username already exists'
+                });
+            } else {    // okay, you may join
+                const user = await createUser({ username, password });
+                const token = jwt.sign({ id: user.id, username }, process.env.JWT_SECRET, { expiresIn:'1w' });
+                res.send({
+                    success: true,
+                    message: 'thanks for signing up ' + username + "!",
+                    token
+                });
+            }
         }
-
-        const user = await createUser({ username, password });
-
-        const token = jwt.sign({
-            id: user.id,
-            username
-        }, process.env.JWT_SECRET, {
-                expiresIn:'1w'
-        });
-        res.send({
-            message: 'Thank You for Signing Up',
-            token
-        });
     } catch ({name, message}) {
         next ({name, message});
     }
@@ -49,25 +55,24 @@ usersRouter.post('/register', async (req, res, next) => {
 
 
 // POST /api/users/login
-// Log in the user. Require username and password, and verify that plaintext login password matches the saved hashed password before returning a JSON Web Token.
-// Keep the id and username in the token
 usersRouter.post('/login', async (req, res, next) => {
     const { username, password } = req.body;
 
-    if (!username || !password){
+    if (!username || !password){    // require username and password
         next({
             name:'MissingCredentialsError',
             message:'Please supply both a username and password'
         });
     }
 
-    try {
+    try { // verify that plaintext login password matches the saved hashed password before returning a json web token
         const user = await getUser({ username, password });
 
-        if (user) {
-            const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET);
+        if (user) { 
+            const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, {expiresIn:"1w"});   // keep the id and username in the token
             res.send({
-                message: "you're logged in!",
+                success: true,
+                message: "you're logged in " + username + "!",
                 token: token
             });
         } else { 
@@ -76,25 +81,27 @@ usersRouter.post('/login', async (req, res, next) => {
                 message:'Username or password is incorrect'
             });
         }
-    } catch (error) {
-        console.log(error);
-        next(error);
+    } catch ({name, message}) {
+        next ({name, message});
     }
 });
 
 
 // GET /api/users/me
-// Send back the logged-in user's data if a valid token is supplied in the header.
+// send back the logged-in user's data if a valid token is supplied in the header
 usersRouter.get('/me', async (req, res, next) => {
     try {
         if (!req.user){
             next({
                 name: "InvalidCredentialsError",
-                message:"Not logged in"
+                message:"not logged in"
             })
         } else {
-            const user = await getUserByUsername(req.user.username);
-            res.send({ user });
+            const user = await getUserById(req.user.id);
+            res.send({ 
+                success: true,
+                user: user
+            });
         }
     } catch ({name,message}){
         next({name,message})
@@ -110,10 +117,14 @@ usersRouter.get('/:username/routines', async (req, res, next) => {
 
     try {
         const routines = await getPublicRoutinesByUser(username);
-        res.send(routines);
+        res.send({ 
+            success: true,
+            routines: routines
+        });
     } catch ({name,message}){
         next({name,message})
     }
 });
+
 
 module.exports = usersRouter;
