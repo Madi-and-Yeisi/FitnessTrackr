@@ -62,6 +62,7 @@ router.use('/routines', routinesRouter);
 // Error handling
 router.use((error, req, res, next) => {
   res.send({
+      success: false,
       name: error.name,
       message: error.message
   });

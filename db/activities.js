@@ -1,16 +1,17 @@
-const client = require("./client");
+const { client } = require('./index');
 
 // activity database functions
 
 
-async function createActivity({ name, description }) {
+// create activity - unless activity name already exists
+async function createActivity({ name, description, imageUrl }) {
   try {
     const { rows: [ activity ] } = await client.query(`
-      INSERT INTO activities (name, description)
-      VALUES ($1, $2)
+      INSERT INTO activities (name, description, "imageUrl")
+      VALUES ($1, $2, $3)
       ON CONFLICT (name) DO NOTHING
       RETURNING *;
-    `, [name, description]);
+    `, [name, description, imageUrl]);
 
     return activity;
   } catch (error) {
@@ -19,6 +20,7 @@ async function createActivity({ name, description }) {
 }
 
 
+// get all activities
 async function getAllActivities() {
   try {
     const { rows: activities } = await client.query(`
@@ -33,6 +35,7 @@ async function getAllActivities() {
 }
 
 
+// get activity by id
 async function getActivityById(id) {
   try {
     const { rows: [ activity ] } = await client.query(`
@@ -41,7 +44,6 @@ async function getActivityById(id) {
       WHERE id=$1;
     `, [id]);
 
-    if (!activity) return null;
     return activity;
   } catch (error) {
     throw error;
@@ -49,6 +51,7 @@ async function getActivityById(id) {
 }
 
 
+// get activity by name
 async function getActivityByName(name) {
   try {
     const { rows: [ activity ] } = await client.query(`
@@ -65,18 +68,19 @@ async function getActivityByName(name) {
 }
 
 
+// update activity (TODO: is there a way to do this query more securely?)
 async function updateActivity(activityId, fields) {
   const setString = Object.keys(fields).map(
     (key, index) => `"${ key }"=$${ index + 1 }`
   ).join(',');
 
-  if (setString.length === 0) return;
+  if (setString.length === 0) return; // nothing was input to update
 
   try {
     const { rows: [activity] } =await client.query(`
       UPDATE activities 
-      SET ${setString}
-      WHERE id=${activityId}
+      SET ${ setString }
+      WHERE id=${ activityId }
       RETURNING *; 
     `, Object.values(fields));
 
@@ -87,6 +91,8 @@ async function updateActivity(activityId, fields) {
 }
 
 
+// TODO: check 
+// attach activities to routines
 async function attachActivitiesToRoutines(routines) {
   // no side effects
   const routinesToReturn = [...routines];

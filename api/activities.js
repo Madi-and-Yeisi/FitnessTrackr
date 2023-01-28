@@ -7,12 +7,15 @@ const { requireUser } = require('./utils');
 
 
 // GET /api/activities
-// Just return a list of all activities in the database
+// just return a list of all activities in the database
 activitiesRouter.get('/', async (req, res, next) => {
     try {
         const activities = await getAllActivities();
 
-        res.send({ activities });
+        res.send({ 
+            success: true,
+            activities: activities
+        });
     } catch ({name,message}){
         next({name,message});
     }
@@ -20,25 +23,45 @@ activitiesRouter.get('/', async (req, res, next) => {
 
 
 // POST /api/activities
-// Create a new activity
+// create a new activity
 activitiesRouter.post('/', requireUser, async (req, res, next) => {
-    const { name, description } = req.body;
+    const { name, description, imageUrl } = req.body;
+    console.log("CREATING A NEW ACTIVITY");
+    console.log(name, description, imageUrl)
 
     const activityData = {};
 
     try {
-        activityData.name = name;
-        activityData.description = description;
-
-        const activity = await createActivity(activityData);
-        
-        if (activity){
-            res.send({ activity });
-        } else {
-            next({
-                name:'ActivityPostError',
-                message:'Activity airrerrr'
+        if(!name) {    // require an activity name
+            next({ 
+                name: 'MissingInputError', 
+                message: 'Missing an activity name'
             });
+        }
+        else if (!description) { // require an activity description
+            next({ 
+                name: 'MissingInputError', 
+                message: 'Missing an activity description'
+            });
+        } else {
+            activityData.name = name;
+            activityData.description = description;
+            activityData.imageUrl = imageUrl;
+
+            const activity = await createActivity(activityData);
+            
+            if (activity){
+                res.send({
+                    success: true,
+                    message: 'new activity created',
+                    activity: activity
+                });
+            } else {
+                next({
+                    name:'ActivityPostError',
+                    message:'An activity with that name already exists'
+                });
+            }
         }
     } catch ({name,message}) {
         next({name,message});
