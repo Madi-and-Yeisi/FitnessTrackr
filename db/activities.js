@@ -74,7 +74,7 @@ async function getActivityById(id) {
 }
 
 
-// get activity by name   // TODO: use?
+// get activity by name   // TODO: use
 async function getActivityByName(name) {
   try {
     const { rows: [ activity ] } = await client.query(`

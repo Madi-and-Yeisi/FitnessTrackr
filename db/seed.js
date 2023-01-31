@@ -2,7 +2,7 @@ const { client } = require('./index');
 
 // db functions 
 const { createUser } = require('./users.js');
-const { createActivity, getAllActivities } = require('./activities.js');
+const { createActivity } = require('./activities.js');
 const { createRoutine, getRoutinesWithoutActivities } = require('./routines.js');
 const { addActivityToRoutine } = require('./routine_activities.js');
 
@@ -114,6 +114,8 @@ async function createInitialActivities() {
       
       // legs
       { name: "Squats", description: "Stand with your feet shoulder-width apart, toes slightly out, core braced, and chest up. Squat — hips back, knees bent, ensuring they fall out, not in. Pause when your thighs reach about parallel to the ground. Push through your entire foot to return to start", imageUrl: "https://srosm.com/uploads/squatting.jpg" },
+      { name: "Treadmill", description: "Running, indoors. Strike the belt with the ball of your feet, not your heels, well ahead of your body's center of gravity. Also, keep your feet under your body, not behind or ahead of it. Avoid short, choppy strides and do your best to run with your natural form.", imageUrl: "" },
+      { name: "Stair Climbing", description: "Stair climbing engages your body's largest muscle groups to repeatedly lift your body weight up, step after step.", imageUrl: "" },
       { name: "Jumping Jacks", description: "Jumping jacks work your whole body. This includes shoulders, hearts, lungs, core, hip flexors, and glutes.", imageUrl: "https://www.icegif.com/wp-content/uploads/icegif-134.gif" },
       { name: "Glute Bridge", description: "Lie on back with knees bent, feet flat on the floor, and arms down at sides. Inhale and push through all four corners of your feet, engaging your core, glutes, and hamstrings to press your hips toward the ceiling. Pause at the top, then slowly release back to the starting position.", imageUrl: "https://i0.wp.com/post.healthline.com/wp-content/uploads/2021/02/400x400_How_to_Get_Rid_of_Hip_Dips_Glute_Bridges.gif?h=840" },
 
@@ -150,10 +152,10 @@ async function createInitialRoutines() {
   console.log("\n(⊙＿⊙') creating initial routines...")
   try {
     const routinesToCreate = [
-      { creatorId: 1, isPublic: true, name: "Arm Day", goal: "Never lose an arm wrestling contest" },
-      { creatorId: 1, isPublic: false, name: "Leg Day", goal: "Running, stairs, squats" },
-      { creatorId: 2, isPublic: true, name: "Cardio Day", goal: "Running, stairs. Stuff that gets your heart pumping!" },
-      { creatorId: 2, isPublic: false, name: "Bicep Day", goal: "Work the Back and Biceps." },
+      { creatorId: 1, isPublic: true, name: "Quick Weekday Morning Yoga", goal: "Start your weekday right. Focus on back, neck, and shoulders - great for desk workers!" },
+      { creatorId: 1, isPublic: true, name: "Leg Day", goal: "Running, stairs, squats" },
+      { creatorId: 2, isPublic: true, name: "My Nightly Routine", goal: "Relaxing yoga and tiring workouts" },
+      { creatorId: 2, isPublic: true, name: "Arm Day", goal: "Never lose an arm wrestling contest. Work the Back and Biceps." },
     ];
     const routines = await Promise.all(routinesToCreate.map((routine) => createRoutine(routine)));
     console.log("routines:", routines);
@@ -162,26 +164,36 @@ async function createInitialRoutines() {
     console.error("Error creating routines");
     throw error;
   }
-
 }
 
 
 async function createInitialRoutineActivities() {
   console.log("\n╚(•⌂•)╝ creating initial routine_activities...");
   try {
-    const [chestRoutine, legRoutine, cardioRoutine, bicepRoutine] = await getRoutinesWithoutActivities();
-    const [bicep1, bicep2, chest1, chest2, leg1, leg2, leg3] = await getAllActivities();
+    const [morningYogaRoutine, legRoutine, nightlyRoutine, armRoutine] = await getRoutinesWithoutActivities();
 
     const routineActivitiesToCreate = [
-      { routineId: bicepRoutine.id, activityId: bicep1.id, count: 10, duration: 5 },
-      { routineId: bicepRoutine.id, activityId: bicep2.id, count: 10, duration: 8 },
-      { routineId: chestRoutine.id, activityId: chest1.id, count: 10, duration: 8 },
-      { routineId: chestRoutine.id, activityId: chest2.id, count: 10, duration: 7 },
-      { routineId: legRoutine.id, activityId: leg1.id, count: 10, duration: 9 },
-      { routineId: legRoutine.id, activityId: leg2.id, count: 10, duration: 10 },
-      { routineId: legRoutine.id, activityId: leg3.id, count: 10, duration: 7 },
-      { routineId: cardioRoutine.id, activityId: leg2.id, count: 10, duration: 10 },
-      { routineId: cardioRoutine.id, activityId: leg3.id, count: 10, duration: 15 },
+      { routineId: armRoutine.id, activityId: 1, count: 30, duration: 120 },
+      { routineId: armRoutine.id, activityId: 2, count: 20, duration: 80 },
+      { routineId: armRoutine.id, activityId: 6, count: 20, duration: 60 },
+      { routineId: armRoutine.id, activityId: 3, count: 10, duration: 40 },
+      { routineId: armRoutine.id, activityId: 4, count: 10, duration: 50 },
+      { routineId: armRoutine.id, activityId: 5, count: 10, duration: 45 },
+      
+      { routineId: morningYogaRoutine.id, activityId: 15, count: 10, duration: 5 },
+      { routineId: morningYogaRoutine.id, activityId: 16, count: 5, duration: 50 },
+
+      { routineId: legRoutine.id, activityId: 7, count: 50, duration: 250 },
+      { routineId: legRoutine.id, activityId: 8, count: 2, duration: 20 },
+      { routineId: legRoutine.id, activityId: 9, count: 1, duration: 10 },
+      { routineId: legRoutine.id, activityId: 10, count: 200, duration: 100 },
+      { routineId: legRoutine.id, activityId: 11, count: 20, duration: 60 },
+
+      { routineId: nightlyRoutine.id, activityId: 17, count: 3, duration: 30 },
+      { routineId: nightlyRoutine.id, activityId: 18, count: 3, duration: 30 },
+      { routineId: nightlyRoutine.id, activityId: 12, count: 2, duration: 60 },
+      { routineId: nightlyRoutine.id, activityId: 7, count: 35, duration: 105 },
+
     ];
     const routineActivities = await Promise.all(routineActivitiesToCreate.map(addActivityToRoutine));
     console.log("routine_activities: ", routineActivities);
@@ -190,14 +202,6 @@ async function createInitialRoutineActivities() {
     console.error("Error creating routine_activities");
     throw error;
   }
-}
-
-
-async function testDB() {
-  console.log('\n\nლ༼>╭ ͟ʖ╮<༽ლ ... TESTING DATABASE ... ლ༼>╭ ͟ʖ╮<༽ლ');
-
-  // const allRoutines = await getAllRoutines();
-
 }
 
 
@@ -210,7 +214,6 @@ async function rebuildDB() {
     await createInitialActivities()
     await createInitialRoutines()
     await createInitialRoutineActivities()
-    await testDB();
     client.end();
   } catch (error) {
     console.log("Error during rebuildDB")
