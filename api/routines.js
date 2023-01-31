@@ -6,17 +6,18 @@ const { getAllRoutines } = require('../db/routines');   // DEVELOPMENT TESTING O
 const { addActivityToRoutine, deleteRoutineActivity } = require('../db/routine_activities');
 const { requireUser } = require('./utils');
 
+
 // GET /api/routines
 // return a list of public routines including their activities
 routinesRouter.get('/', async (req, res, next) => {
     try{
         const routines = await getAllPublicRoutines();
-        // const allRoutines = await getAllRoutines();   // DEVELOPMENT TESTING ONLY
+        const allRoutines = await getAllRoutines();   // DEVELOPMENT TESTING ONLY
 
         res.send({
             success: true,
             routines: routines,
-            // allRoutines: allRoutines   // DEVELOPMENT TESTING ONLY
+            allRoutines: allRoutines   // DEVELOPMENT TESTING ONLY
         });
     } catch ({name, message}) {
         next({name, message});

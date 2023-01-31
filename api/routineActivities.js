@@ -24,7 +24,6 @@ routineActivitiesRouter.get('/', async (req, res, next) => {   // DEVELOPMENT TE
 });
 
 
-
 // PATCH /api/routine_activities/:routineActivityId
 // update the count or duration on the routine activity
 routineActivitiesRouter.patch('/:routineActivityId', requireUser, async (req, res, next) => {

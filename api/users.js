@@ -94,13 +94,13 @@ usersRouter.get('/me', async (req, res, next) => {
         if (!req.user){
             next({
                 name: "InvalidCredentialsError",
-                message:"not logged in"
+                message:"nobody logged in"
             })
         } else {
-            const user = await getUserById(req.user.id);
             res.send({ 
                 success: true,
-                user: user
+                message: req.user.username + " is logged in",
+                user: req.user
             });
         }
     } catch ({name,message}){
@@ -110,7 +110,7 @@ usersRouter.get('/me', async (req, res, next) => {
 
 
 // GET /api/users/:username/routines
-// TODO: Get a list of public routines for a particular user.
+// get a list of public routines for a particular user
 usersRouter.get('/:username/routines', async (req, res, next) => {
     const { username } = req.params;
     console.log("getting routines for ", username);
