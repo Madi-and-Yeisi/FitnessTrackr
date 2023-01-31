@@ -34,7 +34,7 @@ async function updateRoutine( routineId, fields ) {
     const { rows: [routine] } =await client.query(`
       UPDATE routines
       SET ${setString}
-      WHERE id=${routineId}
+      WHERE id = ${routineId}
       RETURNING *; 
     `, Object.values(fields));
 
@@ -50,7 +50,7 @@ async function deleteRoutine(routineId){
   try {
     const { rows: [routine] } = await client.query(`
       DELETE FROM routines 
-      WHERE id=$1 
+      WHERE id = $1 
       RETURNING *;
     `, [routineId]);
 
@@ -67,10 +67,26 @@ async function getRoutineById(id) {
     const { rows: [ routine ] }=await client.query(`
       SELECT * 
       FROM routines
-      WHERE id=$1;
+      WHERE id = $1;
     `, [id]);
 
     return routine;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+// get routine by id, include routine activities
+async function getRoutineByIdWithActivities(id) {
+  try {
+    const { rows: [ routine ] }=await client.query(`
+      SELECT * 
+      FROM routines
+      WHERE id = $1;
+    `, [id]);
+
+    return attachActivitiesToRoutines([routine]);
   } catch (error) {
     throw error;
   }
@@ -128,7 +144,7 @@ async function getAllRoutinesByUser(userId) {
     const {rows: routineIds } = await client.query (`
       SELECT id
       FROM routines
-      WHERE "creatorId"=$1;
+      WHERE "creatorId" = $1;
     `, [userId]);
 
     const routines = await Promise.all(routineIds.map(
@@ -148,7 +164,7 @@ async function getPublicRoutinesByUser(userId) {
     const { rows: routineIds } = await client.query (`
       SELECT id
       FROM routines
-      WHERE "creatorId"=$1 AND "isPublic"=true;
+      WHERE "creatorId" = $1 AND "isPublic" = true;
     `, [userId]);
 
     const routines = await Promise.all(routineIds.map(
@@ -172,11 +188,7 @@ async function getPublicRoutinesByActivity(activityId) {
       WHERE activity = $1 AND "isPublic" = true;
     `, [activityId])
 
-    const activity = await Promise.all (id.map(
-      activity => getPublicRoutinesByActivity(activity.id)
-    ));
-
-    return activity;
+    return routines;
   } catch (error) {
     throw error;
   }
@@ -188,6 +200,7 @@ module.exports = {
   updateRoutine,
   deleteRoutine,
   getRoutineById,
+  getRoutineByIdWithActivities,
   getAllRoutines,
   getAllPublicRoutines,
   getRoutinesWithoutActivities,

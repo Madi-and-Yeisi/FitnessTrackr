@@ -3,54 +3,6 @@ const { client } = require('./index');
 // activity database functions
 
 
-// get all activities
-async function getAllActivities() {
-  try {
-    const { rows: activities } = await client.query(`
-      SELECT * 
-      FROM activities;
-    `);
-
-    return activities;
-  } catch (error) {
-    throw error;
-  }
-}
-
-
-// get activity by id TODO: FIND USAGES AND CHECK
-async function getActivityById(id) {
-  try {
-    const { rows: [ activity ] } = await client.query(`
-      SELECT id, name, description
-      FROM activities
-      WHERE id=$1;
-    `, [id]);
-
-    return activity;
-  } catch (error) {
-    throw error;
-  }
-}
-
-
-// get activity by name TODO: FIND USAGES AND CHECK
-async function getActivityByName(name) {
-  try {
-    const { rows: [ activity ] } = await client.query(`
-      SELECT id, name, description
-      FROM activities
-      WHERE name=$1;
-    `, [name]);
-
-    if (!activity) return null;
-    return activity;
-  } catch (error) {
-    throw error;
-  }
-}
-
-
 // create activity - unless activity name already exists
 async function createActivity({ name, description, imageUrl }) {
   try {
@@ -80,12 +32,59 @@ async function updateActivity(activityId, fields) {
     const { rows: [ activity ] } =await client.query(`
       UPDATE activities 
       SET ${ setString }
-      WHERE id=${ activityId }
+      WHERE id = ${ activityId }
       RETURNING *; 
     `, Object.values(fields));
 
     return activity;
   } catch (error){
+    throw error;
+  }
+}
+
+
+// get all activities
+async function getAllActivities() {
+  try {
+    const { rows: activities } = await client.query(`
+      SELECT * 
+      FROM activities;
+    `);
+
+    return activities;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+// get activity by id   // TODO: use
+async function getActivityById(id) {
+  try {
+    const { rows: [ activity ] } = await client.query(`
+      SELECT id, name, description
+      FROM activities
+      WHERE id = $1;
+    `, [id]);
+
+    return activity;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+// get activity by name   // TODO: use?
+async function getActivityByName(name) {
+  try {
+    const { rows: [ activity ] } = await client.query(`
+      SELECT id, name, description
+      FROM activities
+      WHERE name = $1;
+    `, [name]);
+
+    return activity;
+  } catch (error) {
     throw error;
   }
 }
@@ -123,10 +122,10 @@ async function attachActivitiesToRoutines(routines) {
 
 
 module.exports = {
+  createActivity,
+  updateActivity,
   getAllActivities,
   getActivityById,
   getActivityByName,
-  createActivity,
-  updateActivity,
   attachActivitiesToRoutines
 };
