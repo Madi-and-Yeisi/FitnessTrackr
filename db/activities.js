@@ -77,7 +77,7 @@ async function updateActivity(activityId, fields) {
   if (setString.length === 0) return; // nothing was input to update
 
   try {
-    const { rows: [activity] } =await client.query(`
+    const { rows: [ activity ] } =await client.query(`
       UPDATE activities 
       SET ${ setString }
       WHERE id=${ activityId }

@@ -70,20 +70,24 @@ activitiesRouter.post('/', requireUser, async (req, res, next) => {
 
 
 // PATCH /api/activities/:activityId
-// Anyone can update an activity (yes, this could lead to long term problems a la wikipedia)
+// update an activity (any user can update an activity like wikipedia)
 activitiesRouter.patch('/:activityId', requireUser, async (req, res, next) => {
     const { activityId } = req.params;
-    const { name, description } = req.body;
+    const { name, description, imageUrl } = req.body;
 
     const updateFields = {};
 
     if (name) updateFields.name = name;
     if (description) updateFields.description = description;
+    if (imageUrl) updateFields.imageUrl = imageUrl;
 
     try {
         const updatedActivity = updateActivity(activityId, updateFields);
-        res.send({ activity: updatedActivity });
-
+        res.send({
+            success: true,
+            message: name + ' activity updated',
+            activity: updatedActivity
+        });
     } catch ({name,message}) {
         next({name,message});
     }
