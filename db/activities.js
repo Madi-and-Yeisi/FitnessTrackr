@@ -3,6 +3,54 @@ const { client } = require('./index');
 // activity database functions
 
 
+// get all activities
+async function getAllActivities() {
+  try {
+    const { rows: activities } = await client.query(`
+      SELECT * 
+      FROM activities;
+    `);
+
+    return activities;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+// get activity by id TODO: FIND USAGES AND CHECK
+async function getActivityById(id) {
+  try {
+    const { rows: [ activity ] } = await client.query(`
+      SELECT id, name, description
+      FROM activities
+      WHERE id=$1;
+    `, [id]);
+
+    return activity;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+// get activity by name TODO: FIND USAGES AND CHECK
+async function getActivityByName(name) {
+  try {
+    const { rows: [ activity ] } = await client.query(`
+      SELECT id, name, description
+      FROM activities
+      WHERE name=$1;
+    `, [name]);
+
+    if (!activity) return null;
+    return activity;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
 // create activity - unless activity name already exists
 async function createActivity({ name, description, imageUrl }) {
   try {
@@ -20,55 +68,7 @@ async function createActivity({ name, description, imageUrl }) {
 }
 
 
-// get all activities
-async function getAllActivities() {
-  try {
-    const { rows: activities } = await client.query(`
-      SELECT * 
-      FROM activities;
-    `);
-
-    return activities;
-  } catch (error) {
-    throw error;
-  }
-}
-
-
-// get activity by id
-async function getActivityById(id) {
-  try {
-    const { rows: [ activity ] } = await client.query(`
-      SELECT id, name, description
-      FROM activities
-      WHERE id=$1;
-    `, [id]);
-
-    return activity;
-  } catch (error) {
-    throw error;
-  }
-}
-
-
-// get activity by name
-async function getActivityByName(name) {
-  try {
-    const { rows: [ activity ] } = await client.query(`
-      SELECT id, name, description
-      FROM activities
-      WHERE name=$1;
-    `, [name]);
-
-    if (!activity) return null;
-    return activity;
-  } catch (error) {
-    throw error;
-  }
-}
-
-
-// update activity (TODO: is there a way to do this query more securely?)
+// update activity
 async function updateActivity(activityId, fields) {
   const setString = Object.keys(fields).map(
     (key, index) => `"${ key }"=$${ index + 1 }`
@@ -91,7 +91,6 @@ async function updateActivity(activityId, fields) {
 }
 
 
-// TODO: check 
 // attach activities to routines
 async function attachActivitiesToRoutines(routines) {
   // no side effects

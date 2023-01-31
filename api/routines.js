@@ -1,16 +1,22 @@
 const express = require('express');
 const routinesRouter = express.Router();
 
-const { createRoutine, getAllRoutines, updateRoutine, getRoutineById } = require('../db/routines');
+const { getAllPublicRoutines, createRoutine, updateRoutine, getRoutineById, deleteRoutine } = require('../db/routines');
+const { getAllRoutines } = require('../db/routines');   // DEVELOPMENT TESTING ONLY
 const { requireUser } = require('./utils');
 
 // GET /api/routines
-// Return a list of public routines, include the activities with them
+// return a list of public routines including their activities
 routinesRouter.get('/', async (req, res, next) => {
     try{
-        const routines = await getAllRoutines();
+        const routines = await getAllPublicRoutines();
+        const allRoutines = await getAllRoutines();   // DEVELOPMENT TESTING ONLY
 
-        res.send({ routines });
+        res.send({
+            success: true,
+            routines: routines,
+            allRoutines: allRoutines   // DEVELOPMENT TESTING ONLY
+        });
     } catch ({name, message}) {
         next({name, message});
     }
@@ -18,7 +24,7 @@ routinesRouter.get('/', async (req, res, next) => {
 
 
 // POST /api/routines
-// Create a new routine
+// create a new routine
 routinesRouter.post('/', requireUser, async (req, res, next) => {
     const { name, goal, isPublic } = req.body;
 
@@ -33,7 +39,11 @@ routinesRouter.post('/', requireUser, async (req, res, next) => {
         const routine = await createRoutine(routineData);
         
         if (routine){
-            res.send({ routine });
+            res.send({ 
+                success: true,
+                message: 'new routine created',
+                routine: routine
+            });
         } else {
             next({
                 name:'RoutinePostError',
@@ -47,7 +57,7 @@ routinesRouter.post('/', requireUser, async (req, res, next) => {
 
 
 // PATCH /api/routines/:routineId
-// Update a routine, notably change public/private, the name, or the goal
+// update a routine
 routinesRouter.patch('/:routineId', requireUser, async (req, res, next) => {
     const { routineId } = req.params;
     const { name, goal, isPublic } = req.body;
@@ -58,13 +68,16 @@ routinesRouter.patch('/:routineId', requireUser, async (req, res, next) => {
     if (goal) updateFields.goal = goal;
     if (isPublic) updateFields.isPublic = isPublic;
 
-
     try {
         const originalRoutine = await getRoutineById(routineId);
 
         if (originalRoutine.creatorId === req.user.id){
             const updatedRoutine = await updateRoutine(routineId, updateFields);
-            res.send({ routine: updatedRoutine })
+            res.send({ 
+                success: true,
+                message: 'routine updated',
+                routine: updatedRoutine
+            })
         } else {
             next ({ 
                 name:'UnauthorizedUserError',
@@ -76,26 +89,27 @@ routinesRouter.patch('/:routineId', requireUser, async (req, res, next) => {
     }
 });
 
+
 // DELETE /api/routines/:routineId
-// TODO: Hard delete a routine. Make sure to delete all the routineActivities whose routine is the one being deleted.
+// hard delete a routine - TODO: making sure to delete all the routineActivities whose routine is the one being deleted.
 routinesRouter.delete('/:routineId', requireUser, async (req, res, next) => {
+    console.log("DELETE ROUTINE")
+    const { routineId } = req.params;
     try {
-        const routine = await getRoutineById(req.params.routineId);
-
-        if (routine && routine.creatorId == req.user.id){
-            const updatedRoutine = await updateRoutine(routine.id, { isPublic: false });
-
-            res.send({ routine: updatedRoutine })
+        const deletedRoutine = await deleteRoutine(routineId);
+        if (deletedRoutine) {
+            res.send({
+                success: true,
+                message: 'routine deleted',
+                deletedRoutine: deletedRoutine
+            });
         } else {
-            // if there was a routine, throw UnauthorizedUserError, otherwise throw RoutineNotFoundError
-            next(routine ? {
-                name: "UnauthorizedUserError",
-                message: "You cannot delete a routine which is not yours"
-            } : {
-                name: "RoutineNotFoundError",
-                message: "That routine does not exist"
+            next({
+                name: 'DeleteRoutineError',
+                message: 'there was an error deleted routine, nothing was deleted'
             });
         }
+
     } catch ({ name, message }) {
         next({ name, message });
     }
@@ -128,8 +142,6 @@ routinesRouter.post('/:routineId/activities', requireUser, async (req, res, next
     // next ({name,message});
     // }
 });
-
-
 
 
 module.exports = routinesRouter;

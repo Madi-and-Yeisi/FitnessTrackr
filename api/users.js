@@ -113,10 +113,12 @@ usersRouter.get('/me', async (req, res, next) => {
 // TODO: Get a list of public routines for a particular user.
 usersRouter.get('/:username/routines', async (req, res, next) => {
     const { username } = req.params;
-    console.log("getting routines from ", username);
+    console.log("getting routines for ", username);
 
     try {
-        const routines = await getPublicRoutinesByUser(username);
+        const user = await getUserByUsername(username);
+        const routines = await getPublicRoutinesByUser(user.id);
+
         res.send({ 
             success: true,
             routines: routines
