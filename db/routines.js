@@ -77,13 +77,15 @@ async function getRoutineById(id) {
 }
 
 
-// get routine by id, include routine activities
+// TODO: get routine by id, include routine activities and creatorName
 async function getRoutineByIdWithActivities(id) {
+  console.log('getting routine by id with activities lol aka the function were doing rn');
   try {
     const { rows: [ routine ] }=await client.query(`
-      SELECT * 
+      SELECT routines.*, users.username AS "creatorName"
       FROM routines
-      WHERE id = $1;
+      JOIN users ON routines."creatorId" = users.id 
+      WHERE routines.id = $1;
     `, [id]);
 
     return attachActivitiesToRoutines([routine]);

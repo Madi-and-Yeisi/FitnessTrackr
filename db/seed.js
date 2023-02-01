@@ -154,7 +154,7 @@ async function createInitialRoutines() {
     const routinesToCreate = [
       { creatorId: 1, isPublic: true, name: "Quick Weekday Morning Yoga", goal: "Start your weekday right. Focus on back, neck, and shoulders - great for desk workers!" },
       { creatorId: 1, isPublic: true, name: "Leg Day", goal: "Running, stairs, squats" },
-      { creatorId: 2, isPublic: true, name: "My Nightly Routine", goal: "Relaxing yoga and tiring workouts" },
+      { creatorId: 2, isPublic: false, name: "My Nightly Routine", goal: "Relaxing yoga and tiring workouts" },
       { creatorId: 2, isPublic: true, name: "Arm Day", goal: "Never lose an arm wrestling contest. Work the Back and Biceps." },
     ];
     const routines = await Promise.all(routinesToCreate.map((routine) => createRoutine(routine)));

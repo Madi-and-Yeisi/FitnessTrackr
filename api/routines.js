@@ -7,24 +7,6 @@ const { addActivityToRoutine, deleteRoutineActivity } = require('../db/routine_a
 const { requireUser } = require('./utils');
 
 
-// GET /api/routines
-// return a list of public routines including their activities
-routinesRouter.get('/', async (req, res, next) => {
-    try{
-        const routines = await getAllPublicRoutines();
-        const allRoutines = await getAllRoutines();   // DEVELOPMENT TESTING ONLY
-
-        res.send({
-            success: true,
-            routines: routines,
-            allRoutines: allRoutines   // DEVELOPMENT TESTING ONLY
-        });
-    } catch ({name, message}) {
-        next({name, message});
-    }
-});
-
-
 // POST /api/routines
 // create a new routine
 routinesRouter.post('/', requireUser, async (req, res, next) => {
@@ -134,6 +116,46 @@ routinesRouter.delete('/:routineId', requireUser, async (req, res, next) => {
 
     } catch ({ name, message }) {
         next({ name, message });
+    }
+});
+
+
+// GET /api/routines
+// return a list of public routines including their activities
+routinesRouter.get('/', async (req, res, next) => {
+    try{
+        const routines = await getAllPublicRoutines();
+        const allRoutines = await getAllRoutines();   // DEVELOPMENT TESTING ONLY
+
+        res.send({
+            success: true,
+            routines: routines,
+            allRoutines: allRoutines   // DEVELOPMENT TESTING ONLY
+        });
+    } catch ({name, message}) {
+        next({name, message});
+    }
+});
+
+
+// GET /api/routines/:routineId
+// return a single routine by id
+routinesRouter.get('/:routineId', async (req, res, next) => {
+    const { routineId } = req.params;
+    try{
+        const [ routine ] = await getRoutineByIdWithActivities(routineId);
+
+        // if (!routine.isPublic) {
+        //     console.log("PRIVATE ROUTINE"); // TODO: dont let users get others private routines by typing routineId into url
+        // }
+
+        res.send({
+            success: true,
+            message: 'got routine #' + routineId,
+            routine: routine
+        });
+    } catch ({name, message}) {
+        next({name, message});
     }
 });
 
