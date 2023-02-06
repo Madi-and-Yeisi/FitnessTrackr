@@ -95,15 +95,18 @@ activitiesRouter.patch('/:activityId', requireUser, async (req, res, next) => {
 
 
 // GET /api/activities/:activityId/routines
-// TODO: Get a list of all public routines which feature that activity
+// get a list of all public routines which feature that activity
 activitiesRouter.get('/:activityId/routines', async (req, res, next) => {
     const activityId = req.params.activityId;
 
     try{
-        const activities = await getPublicRoutinesByActivity(activityId);
+        const routines = await getPublicRoutinesByActivity(activityId);
 
-        if (activities.length) {
-            res.send({ activities });
+        if (routines.length) {
+            res.send({ 
+                success: true,
+                message: "Routines including the activityId: " + activityId,
+                routines: routines });
         } else {
             next({
                 name: "NoRoutinesWithActivityId",

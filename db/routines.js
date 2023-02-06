@@ -1,6 +1,7 @@
 const { client } = require('./index');
 
 const { attachActivitiesToRoutines } = require('./activities');
+const { getUserById } = require('./users');
 
 
 // routines database functions
@@ -77,9 +78,8 @@ async function getRoutineById(id) {
 }
 
 
-// TODO: get routine by id, include routine activities and creatorName
+// get routine by id, include routine activities and creatorName
 async function getRoutineByIdWithActivities(id) {
-  console.log('getting routine by id with activities lol aka the function were doing rn');
   try {
     const { rows: [ routine ] }=await client.query(`
       SELECT routines.*, users.username AS "creatorName"
@@ -180,17 +180,27 @@ async function getPublicRoutinesByUser(userId) {
 }
 
 
-// TODO: select and return an array of public routines which have a specific activityId in their routine_activities join, include their activities
+// select and return an array of public routines which have a specific activityId in their routine_activities, include their activities and creator username
 async function getPublicRoutinesByActivity(activityId) {
   try {
-    const { rows: routines } = await client.query (`
-      SELECT routines.*, users.username AS "creatorName"
-      FROM routines
-      JOIN users ON routines."creatorId" = users.id 
-      WHERE activity = $1 AND "isPublic" = true;
+    const { rows: routineIds } = await client.query (`
+      SELECT "routineId" 
+      FROM routine_activities
+      WHERE "activityId" = $1;
     `, [activityId])
 
-    return routines;
+    const routines = await Promise.all(routineIds.map(
+      routine => getRoutineById( routine.routineId )
+    ));
+
+    // add usernames as creatorName to each routine
+    const routinesWithCreatorNames = await Promise.all(routines.map(async function(routine) {
+      const user = await getUserById( routine.creatorId );
+      routine.creatorName = user.username;
+      return routine;
+    }));
+
+    return attachActivitiesToRoutines(routinesWithCreatorNames);
   } catch (error) {
     throw error;
   }
