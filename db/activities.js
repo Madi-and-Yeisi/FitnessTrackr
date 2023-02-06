@@ -20,6 +20,29 @@ async function createActivity({ name, description, imageUrl }) {
 }
 
 
+// update activity
+async function updateActivity(activityId, fields) {
+  const setString = Object.keys(fields).map(
+    (key, index) => `"${ key }"=$${ index + 1 }`
+  ).join(',');
+
+  if (setString.length === 0) return; // nothing was input to update
+
+  try {
+    const { rows: [ activity ] } =await client.query(`
+      UPDATE activities 
+      SET ${ setString }
+      WHERE id = ${ activityId }
+      RETURNING *; 
+    `, Object.values(fields));
+
+    return activity;
+  } catch (error){
+    throw error;
+  }
+}
+
+
 // get all activities
 async function getAllActivities() {
   try {
@@ -35,13 +58,13 @@ async function getAllActivities() {
 }
 
 
-// get activity by id
+// get activity by id   // TODO: use
 async function getActivityById(id) {
   try {
     const { rows: [ activity ] } = await client.query(`
       SELECT id, name, description
       FROM activities
-      WHERE id=$1;
+      WHERE id = $1;
     `, [id]);
 
     return activity;
@@ -51,16 +74,15 @@ async function getActivityById(id) {
 }
 
 
-// get activity by name
+// get activity by name   // TODO: use
 async function getActivityByName(name) {
   try {
     const { rows: [ activity ] } = await client.query(`
       SELECT id, name, description
       FROM activities
-      WHERE name=$1;
+      WHERE name = $1;
     `, [name]);
 
-    if (!activity) return null;
     return activity;
   } catch (error) {
     throw error;
@@ -68,30 +90,6 @@ async function getActivityByName(name) {
 }
 
 
-// update activity (TODO: is there a way to do this query more securely?)
-async function updateActivity(activityId, fields) {
-  const setString = Object.keys(fields).map(
-    (key, index) => `"${ key }"=$${ index + 1 }`
-  ).join(',');
-
-  if (setString.length === 0) return; // nothing was input to update
-
-  try {
-    const { rows: [activity] } =await client.query(`
-      UPDATE activities 
-      SET ${ setString }
-      WHERE id=${ activityId }
-      RETURNING *; 
-    `, Object.values(fields));
-
-    return activity;
-  } catch (error){
-    throw error;
-  }
-}
-
-
-// TODO: check 
 // attach activities to routines
 async function attachActivitiesToRoutines(routines) {
   // no side effects
@@ -124,10 +122,10 @@ async function attachActivitiesToRoutines(routines) {
 
 
 module.exports = {
+  createActivity,
+  updateActivity,
   getAllActivities,
   getActivityById,
   getActivityByName,
-  createActivity,
-  updateActivity,
   attachActivitiesToRoutines
 };

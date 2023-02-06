@@ -70,20 +70,24 @@ activitiesRouter.post('/', requireUser, async (req, res, next) => {
 
 
 // PATCH /api/activities/:activityId
-// Anyone can update an activity (yes, this could lead to long term problems a la wikipedia)
+// update an activity (any user can update an activity like wikipedia)
 activitiesRouter.patch('/:activityId', requireUser, async (req, res, next) => {
     const { activityId } = req.params;
-    const { name, description } = req.body;
+    const { name, description, imageUrl } = req.body;
 
     const updateFields = {};
 
     if (name) updateFields.name = name;
     if (description) updateFields.description = description;
+    if (imageUrl) updateFields.imageUrl = imageUrl;
 
     try {
         const updatedActivity = updateActivity(activityId, updateFields);
-        res.send({ activity: updatedActivity });
-
+        res.send({
+            success: true,
+            message: name + ' activity updated',
+            activity: updatedActivity
+        });
     } catch ({name,message}) {
         next({name,message});
     }
@@ -91,15 +95,18 @@ activitiesRouter.patch('/:activityId', requireUser, async (req, res, next) => {
 
 
 // GET /api/activities/:activityId/routines
-// TODO: Get a list of all public routines which feature that activity
+// get a list of all public routines which feature that activity
 activitiesRouter.get('/:activityId/routines', async (req, res, next) => {
     const activityId = req.params.activityId;
 
     try{
-        const activities = await getPublicRoutinesByActivity(activityId);
+        const routines = await getPublicRoutinesByActivity(activityId);
 
-        if (activities.length) {
-            res.send({ activities });
+        if (routines.length) {
+            res.send({ 
+                success: true,
+                message: "Routines including the activityId: " + activityId,
+                routines: routines });
         } else {
             next({
                 name: "NoRoutinesWithActivityId",

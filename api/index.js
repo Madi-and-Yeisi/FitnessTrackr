@@ -56,8 +56,8 @@ const routinesRouter = require('./routines');
 router.use('/routines', routinesRouter);
 
 // // ROUTER: /api/routine_activities
-// const routineActivitiesRouter = require('./routineActivities');
-// router.use('/routine_activities', routineActivitiesRouter);
+const routineActivitiesRouter = require('./routineActivities');
+router.use('/routine_activities', routineActivitiesRouter);
 
 // Error handling
 router.use((error, req, res, next) => {

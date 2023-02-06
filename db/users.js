@@ -26,7 +26,6 @@ async function createUser({ username, password }) {
 }
 
 
-// TODO: FIND USAGES AND TEST
 // check user for valid input, find username and compare input password to encrypted password
 async function getUser({ username, password }) {
   try {
@@ -48,7 +47,22 @@ async function getUser({ username, password }) {
 }
 
 
-// gets user by username for getUser verification
+// gets user by id for
+async function getUserById(userId) {
+  try {
+    const { rows: [ user ] } = await client.query(`
+      SELECT id, username 
+      FROM users 
+      WHERE id=$1;
+    `, [userId]);
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+// gets user by username
 async function getUserByUsername(userName) {
   console.log("getting user by username...")
   try {
@@ -58,24 +72,6 @@ async function getUserByUsername(userName) {
       WHERE username=$1;
     `, [userName]);
     console.log("user:", user)
-    return user;
-  } catch (error) {
-    throw error;
-  }
-}
-
-
-// TODO: FIND USAGES AND TEST
-// gets user by id for
-async function getUserById(userId) {
-  console.log("getting user by id.... Id:", userId);
-  try {
-    const { rows: [ user ] } = await client.query(`
-      SELECT id, username 
-      FROM users 
-      WHERE id=$1;
-    `, [userId]);
-    console.log("user by id:", user)
     return user;
   } catch (error) {
     throw error;

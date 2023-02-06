@@ -94,13 +94,39 @@ usersRouter.get('/me', async (req, res, next) => {
         if (!req.user){
             next({
                 name: "InvalidCredentialsError",
-                message:"not logged in"
+                message:"nobody logged in"
             })
         } else {
-            const user = await getUserById(req.user.id);
             res.send({ 
                 success: true,
-                user: user
+                message: req.user.username + " is logged in",
+                user: req.user
+            });
+        }
+    } catch ({name,message}){
+        next({name,message})
+    }
+});
+
+
+// GET /api/users/my-routines
+// get a list of all routines for logged-in user
+usersRouter.get('/my-routines', async (req, res, next) => {
+    console.log("getting routines for user");
+
+    try {
+        if (!req.user){
+            next({
+                name: "InvalidCredentialsError",
+                message:"nobody logged in"
+            })
+        } else {
+            const routines = await getAllRoutinesByUser(req.user.id);
+
+            res.send({ 
+                success: true,
+                message: req.user.username + "'s routines",
+                routines: routines
             });
         }
     } catch ({name,message}){
@@ -110,15 +136,18 @@ usersRouter.get('/me', async (req, res, next) => {
 
 
 // GET /api/users/:username/routines
-// TODO: Get a list of public routines for a particular user.
+// get a list of public routines for a particular user
 usersRouter.get('/:username/routines', async (req, res, next) => {
     const { username } = req.params;
-    console.log("getting routines from ", username);
+    console.log("getting routines for ", username);
 
     try {
-        const routines = await getPublicRoutinesByUser(username);
+        const user = await getUserByUsername(username);
+        const routines = await getPublicRoutinesByUser(user.id);
+
         res.send({ 
             success: true,
+            message: username + "'s routines",
             routines: routines
         });
     } catch ({name,message}){

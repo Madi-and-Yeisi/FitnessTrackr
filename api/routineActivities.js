@@ -1,26 +1,58 @@
 const express = require('express');
 const routineActivitiesRouter = express.Router();
 
-const { getRoutineActivityById, updateRoutineActivity } = require('../db/routine_activities')
+const { getRoutineActivityById, updateRoutineActivity, deleteRoutineActivity } = require('../db/routine_activities')
+const { getRoutineById } = require('../db/routines');
+const { getAllRoutineActivities } = require('../db/routine_activities') // DEVELOPMENT TESTING ONLY
+
 const { requireUser } = require('./utils');
 
+
+// GET /api/routine_activities
+// return a list of all routine activities
+routineActivitiesRouter.get('/', async (req, res, next) => {   // DEVELOPMENT TESTING ONLY
+    try {
+        const routineActivities = await getAllRoutineActivities();
+
+        res.send({
+            success: true,
+            routineActivities: routineActivities
+        });
+    } catch ({name, message}) {
+        next({name, message});
+    }
+});
+
+
 // PATCH /api/routine_activities/:routineActivityId
-// TODO: Update the count or duration on the routine activity
+// update the count or duration on the routine activity
 routineActivitiesRouter.patch('/:routineActivityId', requireUser, async (req, res, next) => {
     const { routineActivityId } = req.params;
     const { count, duration } = req.body;
 
-    const updateFields={};
+    const updateFields = {};
 
     if (count) updateFields.count = count;
     if (duration) updateFields.duration = duration;
 
     try {
         const originalRoutineActivity = await getRoutineActivityById(routineActivityId);
+        const routine = await getRoutineById(originalRoutineActivity.routineId);
 
-        if (originalRoutineActivity.creatorId === req.user.id){ // TODO: Fix this line, no creatorId on routine activity
+        if (routine.creatorId === req.user.id){ // you can only update your own routine activities
             const updatedRoutineActivity = await updateRoutineActivity(routineActivityId, updateFields);
-            res.send({ routine: updatedRoutineActivity })
+            if (updatedRoutineActivity) {
+                res.send({ 
+                    success: true,
+                    message: 'routine activity updated',
+                    updatedRoutineActivity: updatedRoutineActivity
+                })
+            } else {
+                next ({ 
+                    name:'RoutineActivityUpdateError',
+                    message:'there was an error updating routine activity'
+                })
+            }
         } else {
             next ({ 
                 name:'UnauthorizedUserError',
@@ -34,26 +66,26 @@ routineActivitiesRouter.patch('/:routineActivityId', requireUser, async (req, re
 
 
 // DELETE /api/routine_activities/:routineActivityId
-// TODO: Remove an activity from a routine, use hard delete
+// hard delete a routine activity
 routineActivitiesRouter.delete('/:routineActivityId', requireUser, async (req, res, next) => {
+    const { routineActivityId } = req.params;
     try {
-        const routineActivity = await getRoutineActivityById(req.params.routineActivityId);
-
-        if (routineActivity && routineActivity.author.id === req.user.id){ // TODO: Fix this, no author on routine activity
-            const updatedRoutineActivity = await updateRoutineActivity(routineActivity.id, { active : false }); // TODO: no active key on routine activity to update
-
-            res.send({ routineActivity:updatedRoutineActivity});
-        }else{
-            next (routineActivity ? {
-                name:'UnauthorizedUserError',
-                message:'Not Able to Delete  Which is not Yours'
-            }:{
-                name:'RoutineActivityNotFound',
-                message:'RoutineActivityDoesnotExist'
+        const deletedRoutineActivity = await deleteRoutineActivity(routineActivityId);
+        if (deletedRoutineActivity) {
+            res.send({
+                success: true,
+                message: 'routine activity deleted',
+                deletedRoutineActivity: deletedRoutineActivity
+            });
+        } else {
+            next({
+                name: 'DeleteRoutineActivityError',
+                message: 'there was an error deleting routine activity, nothing was deleted'
             });
         }
-    } catch ({name,message}) {
-        next({name,message})
+
+    } catch ({ name, message }) {
+        next({ name, message });
     }
 });
 
